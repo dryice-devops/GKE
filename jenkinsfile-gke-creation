@@ -1,0 +1,60 @@
+node ('master') {
+    
+    node('devopsbox'){
+    
+        stage('Code Clone - GIT') {
+		try{
+    
+    	    git 'https://github.com/dryice-devops/GCP.git'
+			}
+			catch(e){
+				 
+					echo("**************************Inside Code Clone - GIT Exception **************************")               						
+					throw e
+					   
+				}
+			
+        }// end Code Clone - GIT
+		
+		stage('Create Cluster clustertutorial - GKE') {
+			
+			echo("************************** Cluster - GKE Start**************************")
+			try{
+			    
+                sh "gcloud container clusters create clustertutorial --num-nodes=3 --zone=us-central1-a"
+                sleep 20
+                sh "export KUBECONFIG=~/.kube/config && gcloud container clusters get-credentials clustertutorial --zone=us-central1-a --project=tutorial-project-268109"
+			    
+			}
+			catch(e){
+				 
+					echo("**************************Inside Create Cluster - GKE Exception**************************")               						
+					throw e
+					   
+				}
+			echo ("**************CLUSTER CREATED ****************")
+		
+		}// end Create Cluster - GKE
+		
+		stage('Deploy Application On - GKE') {
+			
+			echo("************************** App Deployment - GKE Start**************************")
+			try{
+			
+			sh " export KUBECONFIG=~/.kube/config &&  kubectl create namespace sock-shop "
+			
+			sh " export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/complete-demo.yaml'  "
+			}
+			catch(e){
+				 
+					echo("**************************Inside Deploy Application On - GKE Exception**************************")               						
+					throw e
+					   
+				}
+			
+			echo ("**************CLUSTER CREATED ****************")
+		
+		}// end Deploy Application On - GKE
+    }// end Kubernetes_Master Node
+    
+}//end master node
