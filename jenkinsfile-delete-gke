@@ -1,0 +1,19 @@
+node ('master') {
+    
+    node('devopsbox'){
+    
+        stage('Delete Cluster - GKE') {
+		try{
+    
+    	    sh "echo 'Y' | gcloud container clusters delete clustertutorial --zone=us-central1-a"
+			}
+			catch(e){
+				 
+					echo("**************************Inside Delete Cluster GKE Exception **************************")               						
+					throw e
+					   
+				}
+			
+        }// end Code Clone - GIT
+	}// end delete cluster stage
+} // end master node
