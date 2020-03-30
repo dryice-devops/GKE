@@ -6,6 +6,13 @@ node ('master') {
 		try{
     
     	    sh "echo 'Y' | gcloud container clusters delete clustertutorial --zone=us-central1-a"
+	    sleep 30
+	    
+            sh "gcloud compute firewall-rules delete sysdig-agent-inbound-firewall-rule"
+            sleep 30
+	    
+            sh "gcloud compute firewall-rules delete sysdig-agent-outbound-firewall-rule"
+
 			}
 			catch(e){
 				 
