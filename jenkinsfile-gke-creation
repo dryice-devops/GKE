@@ -3,58 +3,108 @@ node ('master') {
     node('devopsbox'){
     
         stage('Code Clone - GIT') {
-		try{
+                                try{
     
-    	    git 'https://github.com/dryice-devops/GCP.git'
-			}
-			catch(e){
-				 
-					echo("**************************Inside Code Clone - GIT Exception **************************")               						
-					throw e
-					   
-				}
-			
+                    git 'https://github.com/dryice-devops/GCP.git'
+                                                }
+                                                catch(e){
+                                                                
+                                                                                echo("**************************Inside Code Clone - GIT Exception **************************")                                                                                                           
+                                                                                throw e
+                                                                                   
+                                                                }
+                                                
         }// end Code Clone - GIT
-		
-		stage('Create Cluster clustertutorial - GKE') {
-			
-			echo("************************** Cluster - GKE Start**************************")
-			try{
-			    
+                                
+                                stage('Create Cluster clustertutorial - GKE') {
+                                                
+                                                echo("************************** Cluster - GKE Start**************************")
+                                                try{
+                                                    
                 sh "gcloud container clusters create clustertutorial --num-nodes=3 --zone=us-central1-a"
                 sleep 20
                 sh "export KUBECONFIG=~/.kube/config && gcloud container clusters get-credentials clustertutorial --zone=us-central1-a --project=tutorial-project-268109"
-			    
-			}
-			catch(e){
-				 
-					echo("**************************Inside Create Cluster - GKE Exception**************************")               						
-					throw e
-					   
-				}
-			echo ("**************CLUSTER CREATED ****************")
-		
-		}// end Create Cluster - GKE
-		
-		stage('Deploy Application On - GKE') {
-			
-			echo("************************** App Deployment - GKE Start**************************")
-			try{
-			
-			sh " export KUBECONFIG=~/.kube/config &&  kubectl create namespace sock-shop "
-			
-			sh " export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/complete-demo.yaml'  "
-			}
-			catch(e){
-				 
-					echo("**************************Inside Deploy Application On - GKE Exception**************************")               						
-					throw e
-					   
-				}
-			
-			echo ("**************CLUSTER CREATED ****************")
-		
-		}// end Deploy Application On - GKE
+                                                    
+                                                }
+                                                catch(e){
+                                                                
+                                                                                echo("**************************Inside Create Cluster - GKE Exception**************************")                                                                                                        
+                                                                                throw e
+                                                                                   
+                                                                }
+                                                echo ("**************CLUSTER CREATED ****************")
+                                
+                                }// end Create Cluster - GKE
+        
+        stage('Create Inbound/Outbound FireWall- GKE') {
+                                                
+                                                echo("************************** Create Inbound/Outbound FireWall- Start**************************")
+                                                try{
+                                                    
+                sh "gcloud compute firewall-rules create sysdig-agent-inbound-firewall-rule --allow=tcp:6443 --direction=INGRESS  --priority=1000 --source-ranges=10.16.0.0/14"
+                sleep 30
+                sh "gcloud compute firewall-rules create sysdig-agent-outbound-firewall-rule --allow=tcp:6443 --direction=EGRESS  --priority=1000 --destination-ranges=10.16.0.0/14"
+                                                    
+                                                }
+                                                catch(e){
+                                                                
+                                                                                echo("**************************Create Inbound/Outbound FireWall- GKE Exception**************************")                                                                                                               
+                                                                                throw e
+                                                                                   
+                                                                }
+                                                echo ("**************FIREWALL CREATED ****************")
+                                
+                                }// end Create Firewall - GKE
+                                
+                                stage('Deploy Application On - GKE') {
+                                                
+                                                echo("************************** App Deployment - GKE Start**************************")
+                                                try{
+                                                
+                                                sh " export KUBECONFIG=~/.kube/config &&  kubectl create namespace sock-shop "
+                                                
+                                                sh " export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/complete-demo.yaml'  "
+                                                }
+                                                catch(e){
+                                                                
+                                                                                echo("**************************Inside Deploy Application On - GKE Exception**************************")                                                                                                        
+                                                                                throw e
+                                                                                   
+                                                                }
+                                                
+                                                echo ("**************CLUSTER CREATED ****************")
+                                
+                                }// end Deploy Application On - GKE
+        
+        
+        stage('Sysdig Deployment On - GKE') {
+                                                
+                                                echo("************************** Sysdig Deployment - GKE Start**************************")
+                                                try{
+                                                
+                                                sh " export KUBECONFIG=~/.kube/config && kubectl create ns sysdig-agent"
+                                                sh " export KUBECONFIG=~/.kube/config && kubectl create secret generic sysdig-agent --from-literal=access-key=effdab9c-9554-4274-9042-9e8331e1d78b -n sysdig-agent "
+            sh " export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/sysdig-agent-clusterrole.yaml' -n sysdig-agent "
+            sh " export KUBECONFIG=~/.kube/config && kubectl create serviceaccount sysdig-agent -n sysdig-agent "
+            sh " export KUBECONFIG=~/.kube/config && kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=sysdig-agent:sysdig-agent "
+            sh " export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/sysdig-agent-configmap.yaml' -n sysdig-agent"
+            sh "export KUBECONFIG=~/.kube/config && kubectl apply -f '${WORKSPACE}/sysdig-agent-daemonset-v2.yaml' -n sysdig-agent"
+            
+            
+                                                }
+                                                catch(e){
+                                                                
+                                                                                echo("**************************Inside Sysdig Application On - GKE Exception**************************")                                                                                                        
+                                                                                throw e
+                                                                                   
+                                                                }
+                                                
+                                                echo ("**************Sysdig CREATED ****************")
+                                
+                                }// end Sysdig Application On - GKE
+        
+        
+        
     }// end Kubernetes_Master Node
     
 }//end master node
