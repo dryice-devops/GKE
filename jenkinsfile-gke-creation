@@ -2,7 +2,7 @@ node ('master') {
     
     node('devopsbox'){
     
-        stage('Code Clone - GIT') {
+        stage('Code Clone - GITHUB') {
          
 			try{
 					git 'https://github.com/dryice-devops/GCP.git'
