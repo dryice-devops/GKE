@@ -1,10 +1,10 @@
 node ('master') {
-    
+
     node('devopsbox'){
     
         stage('Code Clone - GITHUB') {
-         
-			try{
+            
+            try {
 					git 'https://github.com/dryice-devops/GCP.git'
 				}
 			catch(e){
@@ -13,11 +13,12 @@ node ('master') {
 					throw e
                                                                                    
 					}
-          }// end Code Clone - GIT
-                                
-		stage('Create Cluster clustertutorial - GKE') {
-                                                
-                                                echo("************************** Cluster - GKE Start**************************")
+        
+        } // end of code clone
+    
+        stage('Create Cluster clustertutorial - GKE') {
+        
+            echo("************************** Cluster - GKE Start**************************")
 			try{
                                                     
 					sh "gcloud container clusters create clustertutorial --num-nodes=3 --zone=us-central1-a"
@@ -32,12 +33,13 @@ node ('master') {
                                                                                    
 						}
 								echo ("**************CLUSTER CREATED ****************")
-                                
-		}// end Create Cluster - GKE
+        
+        } // close of Create Cluster - GKE
+    
         
         stage('Create Inbound/Outbound FireWall- GKE') {
-                                                
-                                                echo("************************** Create Inbound/Outbound FireWall- Start**************************")
+        
+            echo("************************** Create Inbound/Outbound FireWall- Start**************************")
 			try{
                                                     
 					sh "gcloud compute firewall-rules create sysdig-agent-inbound-firewall-rule --allow=tcp:6443 --direction=INGRESS  --priority=1000 --source-ranges=10.16.0.0/14"
@@ -51,12 +53,12 @@ node ('master') {
                                                                                    
 						}
 									echo ("**************FIREWALL CREATED ****************")
-                                
-		}// end Create Firewall - GKE
-                                
-		stage('Deploy Application On - GKE') {
-                                                
-                                                echo("************************** App Deployment - GKE Start**************************")
+        
+        } //close create inbound/outbound firewall
+        
+        stage('Deploy Application On - GKE') {
+        
+            echo("************************** App Deployment - GKE Start**************************")
 			try{
                                                 
 							sh " export KUBECONFIG=~/.kube/config &&  kubectl create namespace sock-shop "
@@ -71,13 +73,12 @@ node ('master') {
 						}
                                                 
                                                 echo ("**************CLUSTER CREATED ****************")
-                                
-			}// end Deploy Application On - GKE
         
+        } //close deploy application
         
         stage('Sysdig Deployment On - GKE') {
-                                                
-                                                echo("************************** Sysdig Deployment - GKE Start**************************")
+        
+            echo("************************** Sysdig Deployment - GKE Start**************************")
 				try{
                                                 
 							sh " export KUBECONFIG=~/.kube/config && kubectl create ns sysdig-agent"
@@ -98,11 +99,11 @@ node ('master') {
 							}
                                                 
                                                 echo ("**************Sysdig CREATED ****************")
-                                
-		}// end Sysdig Application On - GKE
+        
+        } //close sysdig deployment
         
         
-        
-    }// end Kubernetes_Master Node
-    
-}//end master node
+    } // close devopsbox node
+
+
+}// close master node
